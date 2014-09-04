@@ -30,16 +30,20 @@ module.exports = function(grunt) {
 
     // Configuration to be run (and then tested).
     create_release_branch: {
-      default_options: {
-        options: {
-        },
-        files: {
-          'tmp/default_options': ['test/fixtures/testing', 'test/fixtures/123']
-        }
-      },
       minor: {
         options: {
           prefix: "RB"
+        }
+      },
+      major: {
+        options: {
+          versionPrefix: "vr"
+        }
+      },
+      alpha: {
+        options: {
+          versionPostfix: "-alpha",
+          iterum: "static"
         }
       }
     },
@@ -61,7 +65,7 @@ module.exports = function(grunt) {
 
   // Whenever the "test" task is run, first clean the "tmp" dir, then run this
   // plugin's task(s), then test the result.
-  grunt.registerTask('test', [ 'create_release_branch:minor']);
+  grunt.registerTask('test', [ 'jshint','create_release_branch:major']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);

@@ -8,21 +8,106 @@
 
 'use strict';
 
-var shell  = require('shelljs');
+//var shell  = require('shelljs');
 
 module.exports = function(grunt) {
 
 	// Please see the Grunt documentation for more information regarding task
 	// creation: http://gruntjs.com/creating-tasks
-
+	function convertInt(_value) {
+		if (isNaN(_value)) {
+			_value =  _value.replace(/[^0-9]{1,}/g,"");
+		}
+		return _value;
+	}
 	grunt.registerMultiTask('create_release_branch', 'Grunt Task to Create Release Branches and automatically update semantic versioning', function() {
-		var options = this.options({
-		});
+		var _defaults = {
+			iterum: "patch",
+			versionPrefix: "v",
+			versionPostfix: "",
+			updatePackage: true,
+			updateVersion: true,
+			updateReadme: true,
+			files: {
+				package: "package.json",
+				readme: "README.md",
+				version: "VERSION"
+			},
+			readmeFileText: "\n## [version]\n- New [iterum] branch created on [now]\n\n",
+			readmeRegExReplacePattern: "(={3,}(?:\n|\r))"
+		};
+		var _options = this.options(_defaults);
 
-		grunt.log.writeln("Testings");
-		shell.exec("say Testing!", { silent: true });
+		var _validIterums = ["major","minor","patch","static"];
+		if (!this.target || (_validIterums.indexOf(this.target) === -1)) {
+			if (!_options.iterum || (_validIterums.indexOf(_options.iterum) === -1)) {
+				grunt.fail.fatal("Can not Increment Version without an Iterum");
+			}
+		} else {
+			_options.iterum = this.target;
+		}
 
-		console.log(this);
+		grunt.log.subhead("Create " + _options.iterum + " branch");
+
+		if (!_options.files.package || !grunt.file.exists(_options.files.package)) {
+			grunt.fail.fatal("File Not Found [package]: " + _options.files.package + " (Default: " + _defaults.files.package + ")" );
+		}
+		var _pkg = grunt.file.readJSON(_options.files.package);
+		grunt.log.writeln("Current Version: " + _pkg.version);
+
+		var _newVersionSplit = _pkg.version.split('.');
+		if (_options.iterum === _validIterums[0]) { // major
+			_newVersionSplit[0] = parseInt(convertInt(_newVersionSplit[0]))+1;
+			_newVersionSplit[1] = 0; // reset minor to 0
+			_newVersionSplit[2] = 0; // reset patch to 0
+		}
+		else if (_options.iterum === _validIterums[1]) { // minor
+			_newVersionSplit[1] = parseInt(convertInt(_newVersionSplit[1]))+1;
+			_newVersionSplit[2] = 0; // reset patch to 0
+		}
+		else if (_options.iterum === _validIterums[2]) { // patch
+			_newVersionSplit[2] = parseInt(convertInt(_newVersionSplit[2]))+1;
+		}
+		// Set any Version Post / Pre fixes
+		_newVersionSplit[0] = _options.versionPrefix + convertInt(_newVersionSplit[0]).toString();
+		_newVersionSplit[2] = convertInt(_newVersionSplit[2]).toString() + _options.versionPostfix;
+
+		// Set new Version
+		_pkg.version = _newVersionSplit.join(".");
+		grunt.log.writeln("Set to:" + _pkg.version);
+
+		// write package file
+		if (_options.updatePackage) {
+			grunt.file.write(_options.files.package, JSON.stringify(_pkg, null, "\t"));
+			grunt.log.oklns('Updated: ' + _options.files.package);
+		}
+
+		// If version file specified, update it
+		if (_options.files.version && _options.updateVersion) {
+			if (grunt.file.exists(_options.files.version)) {
+				grunt.file.delete(_options.files.version);
+			}
+			grunt.file.write(_options.files.version,  _pkg.version);
+			grunt.log.oklns('Updated: ' + _options.files.version);
+		}
+
+		// if Readme file specified, update it
+		if (_options.files.readme && _options.updateReadme) {
+			var readmeText = "";
+			var _now = new Date();
+			if (grunt.file.exists(_options.files.readme)) {
+				readmeText = grunt.file.read(_options.files.readme);
+			} else {
+				var _headerUnderline = new Array( (_pkg.name.length) ).join("=");
+				readmeText = _pkg.name + "\n" + _headerUnderline + "\n\n";
+			}
+
+			var _patt = new RegExp(_options.readmeRegExReplacePattern,"gi");
+			readmeText = readmeText.replace(_patt, "$1" + _options.readmeFileText.replace("[version]",_pkg.version).replace("[iterum]",_options.iterum).replace("[now]",_now.toDateString()));
+			grunt.file.write(_options.files.readme, readmeText);
+			grunt.log.oklns('Updated:  ' + _options.files.readme);
+		}
+
 /*
 		var _acceptedIterumValues = ["major","minor","patch"];
 		var _readMeFileName = "ReadMe.md";
@@ -32,32 +117,16 @@ module.exports = function(grunt) {
 		var _runGitCommands = true;
 		var _runFileCommands = true;
 
-		var pkg = grunt.file.readJSON('package.json');
-		grunt.log.oklns('Current Release Branch For: v' + pkg.version);
+		var _pkg = grunt.file.readJSON('package.json');
+		grunt.log.oklns('Current Release Branch For: v' + _pkg.version);
 
 		if (_runGitCommands) {
 			// Goto Master Branch
 			grunt.task.run('gitcheckout:master');
 		}
 
-		// Split Current Version Number to Easily Increment
-		var _newVersionSplit = pkg.version.split('.');
-		if (iterum == _acceptedIterumValues[0]) {
-			_newVersionSplit[0] = parseInt(_newVersionSplit[0])+1;
-			_newVersionSplit[1] = 0;
-			_newVersionSplit[2] = 0;
-		}
-		else if (iterum == _acceptedIterumValues[1]) {
-			_newVersionSplit[1] = parseInt(_newVersionSplit[1])+1;
-			_newVersionSplit[2] = 0;
-		}
-		else {
-			_newVersionSplit[2] = parseInt(_newVersionSplit[2])+1;
-		}
-		pkg.version = _newVersionSplit.join(".");
-
-		var _newBranchName = _branchNamePrefix + 'v' + pkg.version;
-		grunt.log.oklns('Creating Release Branch For: v' + pkg.version);
+		var _newBranchName = _branchNamePrefix + 'v' + _pkg.version;
+		grunt.log.oklns('Creating Release Branch For: v' + _pkg.version);
 
 		if (_runGitCommands) {
 			// Create and Checkout New Version Branch
@@ -71,24 +140,11 @@ module.exports = function(grunt) {
 			grunt.log.oklns('package.json');
 			grunt.file.write("package.json", JSON.stringify(pkg,null,"\t"));
 
-			// Update VERSION file with New Version Number
-			grunt.log.writeln('Updating ' + _versionFileName);
-			if (grunt.file.exists(_versionFileName)) {
-				grunt.file.delete(_versionFileName);
-			}
-			grunt.file.write(_versionFileName, 'v' + pkg.version);
+
 
 			// Update ReadMe File with New Version Number
 			if (grunt.file.exists(_readMeFileName)) {
-				grunt.log.writeln('Updating ' + _readMeFileName);
-				var readmeText = grunt.file.read(_readMeFileName);
-
-				var _date = new Date();
-				var _underline = Array( (pkg.version.length+2) ).join("-");
-
-				readmeText = readmeText.replace(/(={3,}(?:\n|\r))/,"$1\nv" + pkg.version + "\n" + _underline + "\n - New " + iterum + " branch created on " + _date.toLocaleDateString() + "\n" );
-				grunt.file.write(_readMeFileName,readmeText);
-			} else {
+else {
 				grunt.log.error('Oops! ' + _readMeFileName + ' Could Not Found!');
 			}
 
