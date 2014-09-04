@@ -1,4 +1,5 @@
-# grunt-cmv-create-release-branch
+grunt-cmv-create-release-branch
+===============================
 
 > Grunt Task to Create Release Branches and automatically update semantic versioning
 
@@ -37,17 +38,87 @@ grunt.initConfig({
 
 ### Options
 
-#### options.separator
+#### options.iterum
 Type: `String`
-Default value: `',  '`
+Default: `"patch"`
 
-A string value that is used to do something with whatever.
+The semantic value to iterate.  must match one the following values
 
-#### options.punctuation
+| value | example |
+|-------|---------|
+| major | v*1*.0.0 |
+| minor | v1.*1*.0 |
+| patch | v1.1.*1* |
+| static | v1.1.1 |
+
+the `static` value does not increment any semantic value, but allows for the addition of any pre or post fixute to be added to the version.
+
+#### options.versionPrefix
 Type: `String`
-Default value: `'.'`
+Default: `"v"`
 
-A string value that is used to do something else with whatever else.
+A pre fixture to add to the version. eg: `"v1.0.0"`
+
+#### options.versionPostfix
+Type: `String`
+Default: `""`
+
+A post fixture to add to the version. eg: `"1.0.0-alpha"`
+
+#### options.updatePackage
+Type: `Boolean`
+Default: `true`
+
+Update the Package File identified in `options.files.package`
+
+#### options.updateVersion
+Type: `Boolean`
+Default: `true`
+
+Update the Version File identified in `options.files.version`
+
+#### options.updateReadme
+Type: `Boolean`
+Default: `true`
+
+Update the Read Me File identified in `options.files.readme`
+
+#### options.files.package
+Type: `String`
+Default: `"package.json"`
+
+Path to the package file
+
+#### options.files.readme
+Type: `String`
+Default: `"README.md"`
+
+Path to the Readme file
+
+#### options.files.version
+Type: `String`
+Default: `"VERSION"`
+
+Path to the Version file
+
+#### options.readmeFileText
+Type: `String`
+Default: `"\n## [version]\n- New [iterum] branch created on [now]\n\n"`
+
+Text to be added into the Readme File.
+
+| replacement variable | content |
+|----------------------|---------|
+|[version]|the new version value|
+|[iterum]|the version iterum being updates (major, minor, patch)|
+|[now]|the string value return from `toDateString()` of a javascript date object |
+
+
+#### options.readmeRegExReplacePattern
+Type: `String`
+Default: `"(={3,}(?:\n|\r))"`
+
+A Regular Expression Used to find the insert point for the content of `options.readmeFileText`
 
 ### Usage Examples
 
@@ -58,9 +129,6 @@ In this example, the default options are used to do something with whatever. So 
 grunt.initConfig({
   create_release_branch: {
     options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
   },
 });
 ```
@@ -70,13 +138,17 @@ In this example, custom options are used to do something else with whatever else
 
 ```js
 grunt.initConfig({
-  cmv_create_release_branch: {
+  create_release_branch: {
     options: {
-      separator: ': ',
-      punctuation: ' !!!',
+      versionPrefix: "v",
+      options.files {
+        readme: "ReadMe.md"
+      }
     },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
+    major: {
+      options: {
+        iterum: "major"
+      },
     },
   },
 });
