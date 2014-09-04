@@ -29,7 +29,7 @@ module.exports = function(grunt) {
     },
 
     // Configuration to be run (and then tested).
-    cmv_create_release_branch: {
+    create_release_branch: {
       default_options: {
         options: {
         },
@@ -37,13 +37,9 @@ module.exports = function(grunt) {
           'tmp/default_options': ['test/fixtures/testing', 'test/fixtures/123']
         }
       },
-      custom_options: {
+      minor: {
         options: {
-          separator: ': ',
-          punctuation: ' !!!'
-        },
-        files: {
-          'tmp/custom_options': ['test/fixtures/testing', 'test/fixtures/123']
+          prefix: "RB"
         }
       }
     },
@@ -65,7 +61,7 @@ module.exports = function(grunt) {
 
   // Whenever the "test" task is run, first clean the "tmp" dir, then run this
   // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'create_release_branch', 'nodeunit']);
+  grunt.registerTask('test', [ 'create_release_branch:minor']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);
