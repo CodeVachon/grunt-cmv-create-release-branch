@@ -1,6 +1,6 @@
 /*
  * grunt-cmv-create-release-branch
- * https://github.com/Christopher/grunt-cmv-create-release-branch
+ * https://github.com/liaodrake/grunt-cmv-create-release-branch
  *
  * Copyright (c) 2014 Christopher Vachon
  * Licensed under the MIT license.
@@ -8,12 +8,9 @@
 
 'use strict';
 
-//var shell  = require('shelljs');
+var shell  = require('shelljs');
 
 module.exports = function(grunt) {
-
-	// Please see the Grunt documentation for more information regarding task
-	// creation: http://gruntjs.com/creating-tasks
 	function convertInt(_value) {
 		if (isNaN(_value)) {
 			_value =  _value.replace(/[^0-9]{1,}/g,"");
@@ -106,8 +103,11 @@ module.exports = function(grunt) {
 			readmeText = readmeText.replace(_patt, "$1" + _options.readmeFileText.replace("[version]",_pkg.version).replace("[iterum]",_options.iterum).replace("[now]",_now.toDateString()));
 			grunt.file.write(_options.files.readme, readmeText);
 			grunt.log.oklns('Updated:  ' + _options.files.readme);
-		}
+		}  
 
+
+		var sresult  = shell.exec("git status --porcelain");
+		console.log(sresult);
 /*
 		var _acceptedIterumValues = ["major","minor","patch"];
 		var _readMeFileName = "ReadMe.md";

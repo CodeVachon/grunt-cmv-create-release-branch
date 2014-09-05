@@ -45,6 +45,13 @@ module.exports = function(grunt) {
           versionPostfix: "-alpha",
           iterum: "static"
         }
+      },
+      testgit: {
+        options: {
+          updatePackage: false,
+          updateVersion: false,
+          updateReadme: false
+        }
       }
     },
 
@@ -65,7 +72,7 @@ module.exports = function(grunt) {
 
   // Whenever the "test" task is run, first clean the "tmp" dir, then run this
   // plugin's task(s), then test the result.
-  grunt.registerTask('test', [ 'jshint','create_release_branch:major']);
+  grunt.registerTask('test', [ 'jshint','create_release_branch:testgit']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);
