@@ -85,8 +85,9 @@ module.exports = function(grunt) {
 			grunt.fail.fatal("File Not Found [package]: " + _options.files.package + " (Default: " + _defaults.files.package + ")" );
 		}
 		var _pkg = grunt.file.readJSON(_options.files.package);
-		grunt.log.writeln("Current Version: " + _pkg.version);
+		grunt.log.oklns("Current Version: " + _pkg.version);
 
+		// Increment the Version Number
 		var _newVersionSplit = _pkg.version.split('.');
 		if (_options.iterum === _validIterums[0]) { // major
 			_newVersionSplit[0] = parseInt(convertInt(_newVersionSplit[0]))+1;
@@ -106,7 +107,7 @@ module.exports = function(grunt) {
 
 		// Set new Version
 		_pkg.version = _newVersionSplit.join(".");
-		grunt.log.writeln("Set to:" + _pkg.version);
+		grunt.log.oklns("Set to:" + _pkg.version);
 
 		// Git Checkout the Create New Release Branch
 		if (!_options.disableGit) {
@@ -145,96 +146,26 @@ module.exports = function(grunt) {
 			var _patt = new RegExp(_options.readmeRegExReplacePattern,"gi");
 			readmeText = readmeText.replace(_patt, "$1" + _options.readmeFileText.replace("[version]",_pkg.version).replace("[iterum]",_options.iterum).replace("[now]",_now.toDateString()));
 			grunt.file.write(_options.files.readme, readmeText);
-			grunt.log.oklns('Updated:  ' + _options.files.readme);
+			grunt.log.oklns('Updated: ' + _options.files.readme);
 		} 
 
 		// Git Auto Add and Commit Updated Files
 		if (!_options.disableGit &&  _options.git.autoCommitUpdatedVersionFiles) {
-			if (_options.files.readme && _options.updateReadme) { git_add(_options.files.readme); }
-			if (_options.files.version && _options.updateVersion) { git_add(_options.files.version); }
-			if (_options.files.package && _options.updatePackage) { git_add(_options.files.package); }
+			var _logGitAdd = "Git Add: ";
+			if (_options.files.readme && _options.updateReadme) {
+				git_add(_options.files.readme);
+				grunt.log.oklns(_logGitAdd + _options.files.readme);
+			}
+			if (_options.files.version && _options.updateVersion) {
+				git_add(_options.files.version);
+				grunt.log.oklns(_logGitAdd + _options.files.version);
+			}
+			if (_options.files.package && _options.updatePackage) {
+				git_add(_options.files.package);
+				grunt.log.oklns(_logGitAdd + _options.files.package);
+			}
 			git_commit(_options.git.autoCommitMessage);
 			grunt.log.oklns('Git Commit Files: ' + _options.git.autoCommitMessage);
 		}
-/*
-		var _acceptedIterumValues = ["major","minor","patch"];
-		var _readMeFileName = "ReadMe.md";
-		var _versionFileName = "VERSION";
-		var _branchNamePrefix = "Release-";
-
-		var _runGitCommands = true;
-		var _runFileCommands = true;
-
-		var _pkg = grunt.file.readJSON('package.json');
-		grunt.log.oklns('Current Release Branch For: v' + _pkg.version);
-
-		if (_runGitCommands) {
-			// Goto Master Branch
-			grunt.task.run('gitcheckout:master');
-		}
-
-		var _newBranchName = _branchNamePrefix + 'v' + _pkg.version;
-		grunt.log.oklns('Creating Release Branch For: v' + _pkg.version);
-
-		if (_runGitCommands) {
-			// Create and Checkout New Version Branch
-			grunt.config.set('gitcheckout.newVersionBranch.options.branch', _newBranchName);
-			grunt.task.run('gitcheckout:newVersionBranch');
-			grunt.log.oklns('git checkout -b ' + _newBranchName);
-		}
-
-		if (_runFileCommands) {
-			// Update Package.Json File to New Version Number
-			grunt.log.oklns('package.json');
-			grunt.file.write("package.json", JSON.stringify(pkg,null,"\t"));
-
-
-
-			// Update ReadMe File with New Version Number
-			if (grunt.file.exists(_readMeFileName)) {
-else {
-				grunt.log.error('Oops! ' + _readMeFileName + ' Could Not Found!');
-			}
-
-			if (_runGitCommands) {
-				// save file changes in the Repo
-				grunt.task.run('gitcommit:newReleaseBranch');
-			}
-		}
-*/
-/*
-		// Merge task-specific and/or target-specific options with these defaults.
-		var options = this.options({
-			punctuation: '.',
-			separator: ', '
-		});
-
-		// Iterate over all specified file groups.
-		this.files.forEach(function(f) {
-			// Concat specified files.
-			var src = f.src.filter(function(filepath) {
-				// Warn on and remove invalid source files (if nonull was set).
-				if (!grunt.file.exists(filepath)) {
-					grunt.log.warn('Source file "' + filepath + '" not found.');
-					return false;
-				} else {
-					return true;
-				}
-			}).map(function(filepath) {
-				// Read file source.
-				return grunt.file.read(filepath);
-			}).join(grunt.util.normalizelf(options.separator));
-
-			// Handle options.
-			src += options.punctuation;
-
-			// Write the destination file.
-			grunt.file.write(f.dest, src);
-
-			// Print a success message.
-			grunt.log.writeln('File "' + f.dest + '" created.');
-		});
-*/
 	});
-
 };
