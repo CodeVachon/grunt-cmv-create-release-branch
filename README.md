@@ -143,7 +143,7 @@ grunt.initConfig({
   create_release_branch: {
     options: {
       versionPrefix: "v",
-      options.files {
+      files {
         readme: "ReadMe.md"
       }
     },
@@ -151,9 +151,9 @@ grunt.initConfig({
       options: {
         iterum: "" // Set By the Task Name,
         versionPrefix: "PATCH-"
-      },
-    },
-  },
+      }
+    }
+  }
 });
 ```
 
