@@ -39,70 +39,74 @@ grunt.initConfig({
 ### Options
 
 #### options.iterum
-Type: `String`
+Type: `String`   
 Default: `"patch"`
 
 The semantic value to iterate.  must match one the following values
 
 | value | example |
 |-------|---------|
-| major | v*1*.0.0 |
-| minor | v1.*1*.0 |
-| patch | v1.1.*1* |
-| static | v1.1.1 |
+| `major` | __1__.0.0 |
+| `minor` | 1.__1__.0 |
+| `patch` | 1.1.__1__ |
+| `static` | 1.1.1 |
 
-the `static` value does not increment any semantic value, but allows for the addition of any pre or post fixute to be added to the version.
+The `static` value does not increment any semantic value, but allows for the addition of any pre or post fixute to be added to the version.
+
+> ##### Note
+> You can also use the task name to specify the iterum value.
+
 
 #### options.versionPrefix
-Type: `String`
+Type: `String`    
 Default: `"v"`
 
 A pre fixture to add to the version. eg: `"v1.0.0"`
 
 #### options.versionPostfix
-Type: `String`
+Type: `String`   
 Default: `""`
 
 A post fixture to add to the version. eg: `"1.0.0-alpha"`
 
 #### options.updatePackage
-Type: `Boolean`
+Type: `Boolean`   
 Default: `true`
 
 Update the Package File identified in `options.files.package`
 
 #### options.updateVersion
-Type: `Boolean`
+Type: `Boolean`   
 Default: `true`
 
 Update the Version File identified in `options.files.version`
 
 #### options.updateReadme
-Type: `Boolean`
+Type: `Boolean`   
 Default: `true`
 
 Update the Read Me File identified in `options.files.readme`
 
 #### options.files.package
-Type: `String`
+Type: `String`   
 Default: `"package.json"`
 
 Path to the package file
 
 #### options.files.readme
-Type: `String`
+Type: `String`   
 Default: `"README.md"`
 
 Path to the Readme file
 
 #### options.files.version
-Type: `String`
+Type: `String`   
 Default: `"VERSION"`
 
 Path to the Version file
 
 #### options.readmeFileText
-Type: `String`
+Type: `String`   
 Default: `"\n## [version]\n- New [iterum] branch created on [now]\n\n"`
 
 Text to be added into the Readme File.
@@ -115,7 +119,7 @@ Text to be added into the Readme File.
 
 
 #### options.readmeRegExReplacePattern
-Type: `String`
+Type: `String`   
 Default: `"(={3,}(?:\n|\r))"`
 
 A Regular Expression Used to find the insert point for the content of `options.readmeFileText`
@@ -123,7 +127,6 @@ A Regular Expression Used to find the insert point for the content of `options.r
 ### Usage Examples
 
 #### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
 
 ```js
 grunt.initConfig({
@@ -134,7 +137,6 @@ grunt.initConfig({
 ```
 
 #### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
 
 ```js
 grunt.initConfig({
@@ -145,9 +147,10 @@ grunt.initConfig({
         readme: "ReadMe.md"
       }
     },
-    major: {
+    patch: {
       options: {
-        iterum: "major"
+        iterum: "" // Set By the Task Name,
+        versionPrefix: "PATCH-"
       },
     },
   },
