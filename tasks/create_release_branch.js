@@ -17,6 +17,17 @@ module.exports = function(grunt) {
 		}
 		return _value;
 	}
+
+	function git_isDirty() {
+		var sresult  = shell.exec("git status --porcelain", { silent: true });
+		return ((sresult.output.length === 0)?false:true);
+	}
+
+	function git_checkout(_branch, flags) {
+		if (!flags) { flags = ""; }
+		var sresult  = shell.exec("git checkout " + flags + " " +_branch, { silent: true });
+		return ((sresult.output.length === 0)?false:true);
+	}
 	grunt.registerMultiTask('create_release_branch', 'Grunt Task to Create Release Branches and automatically update semantic versioning', function() {
 		var _defaults = {
 			iterum: "patch",
@@ -31,7 +42,12 @@ module.exports = function(grunt) {
 				version: "VERSION"
 			},
 			readmeFileText: "\n## [version]\n- New [iterum] branch created on [now]\n\n",
-			readmeRegExReplacePattern: "(={3,}(?:\n|\r))"
+			readmeRegExReplacePattern: "(={3,}(?:\n|\r))",
+			disableGit: false,
+			git: {
+				force: false,
+				sourceBranch: "master"
+			}
 		};
 		var _options = this.options(_defaults);
 
@@ -44,7 +60,12 @@ module.exports = function(grunt) {
 			_options.iterum = this.target;
 		}
 
-		grunt.log.subhead("Create " + _options.iterum + " branch");
+		grunt.log.subhead("Create a "+ _options.iterum + " branch");
+
+		if (!_options.disableGit) {
+			if (git_isDirty()) { grunt.fail.fatal("Git found some uncommited files. Commit or Stash git files to proceed"); }
+			git_checkout(_options.git.sourceBranch);
+		}
 
 		if (!_options.files.package || !grunt.file.exists(_options.files.package)) {
 			grunt.fail.fatal("File Not Found [package]: " + _options.files.package + " (Default: " + _defaults.files.package + ")" );
@@ -104,10 +125,6 @@ module.exports = function(grunt) {
 			grunt.file.write(_options.files.readme, readmeText);
 			grunt.log.oklns('Updated:  ' + _options.files.readme);
 		}  
-
-
-		var sresult  = shell.exec("git status --porcelain");
-		console.log(sresult);
 /*
 		var _acceptedIterumValues = ["major","minor","patch"];
 		var _readMeFileName = "ReadMe.md";
