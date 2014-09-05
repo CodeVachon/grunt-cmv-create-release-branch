@@ -19,23 +19,32 @@ module.exports = function(grunt) {
 	}
 
 	function git_isDirty() {
-		var sresult  = shell.exec("git status --porcelain", { silent: true });
+		var _command = "git status --porcelain";
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: true });
 		return ((sresult.output.length === 0)?false:true);
 	}
 
 	function git_checkout(_branch, flags) {
-		if (!flags) { flags = ""; }
-		var sresult  = shell.exec("git checkout " + flags + " " +_branch, { silent: true });
+		var _command = "git checkout " + flags + " " +_branch;
+		if (flags) { _command += flags + " "; }
+		_command += _branch;
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: true });
 		return;
 	}
 
 	function git_add(_file) {
-		var sresult  = shell.exec("git add " + _file, { silent: true });
+		var _command ="git add " + _file;
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: true });
 		return;
 	}
 
 	function git_commit(_message) {
-		var sresult  = shell.exec("git commit -m \"" + _message + "\"", { silent: true });
+		var _command = "git commit -m \"" + _message + "\"";
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: true });
 		return;
 	}
 	grunt.registerMultiTask('create_release_branch', 'Grunt Task to Create Release Branches and automatically update semantic versioning', function() {
@@ -107,7 +116,7 @@ module.exports = function(grunt) {
 
 		// Set new Version
 		_pkg.version = _newVersionSplit.join(".");
-		grunt.log.oklns("Set to:" + _pkg.version);
+		grunt.log.oklns("Set to: " + _pkg.version);
 
 		// Git Checkout the Create New Release Branch
 		if (!_options.disableGit) {
@@ -152,17 +161,17 @@ module.exports = function(grunt) {
 		// Git Auto Add and Commit Updated Files
 		if (!_options.disableGit &&  _options.git.autoCommitUpdatedVersionFiles) {
 			var _logGitAdd = "Git Add: ";
-			if (_options.files.readme && _options.updateReadme) {
-				git_add(_options.files.readme);
-				grunt.log.oklns(_logGitAdd + _options.files.readme);
+			if (_options.files.package && _options.updatePackage) {
+				git_add(_options.files.package);
+				grunt.log.oklns(_logGitAdd + _options.files.package);
 			}
 			if (_options.files.version && _options.updateVersion) {
 				git_add(_options.files.version);
 				grunt.log.oklns(_logGitAdd + _options.files.version);
 			}
-			if (_options.files.package && _options.updatePackage) {
-				git_add(_options.files.package);
-				grunt.log.oklns(_logGitAdd + _options.files.package);
+			if (_options.files.readme && _options.updateReadme) {
+				git_add(_options.files.readme);
+				grunt.log.oklns(_logGitAdd + _options.files.readme);
 			}
 			git_commit(_options.git.autoCommitMessage);
 			grunt.log.oklns('Git Commit Files: ' + _options.git.autoCommitMessage);
