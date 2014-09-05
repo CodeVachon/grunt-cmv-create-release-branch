@@ -26,7 +26,17 @@ module.exports = function(grunt) {
 	function git_checkout(_branch, flags) {
 		if (!flags) { flags = ""; }
 		var sresult  = shell.exec("git checkout " + flags + " " +_branch, { silent: true });
-		return ((sresult.output.length === 0)?false:true);
+		return;
+	}
+
+	function git_add(_file) {
+		var sresult  = shell.exec("git add " + _file, { silent: true });
+		return;
+	}
+
+	function git_commit(_message) {
+		var sresult  = shell.exec("git commit -m \"" + _message + "\"", { silent: true });
+		return;
 	}
 	grunt.registerMultiTask('create_release_branch', 'Grunt Task to Create Release Branches and automatically update semantic versioning', function() {
 		var _defaults = {
@@ -45,9 +55,10 @@ module.exports = function(grunt) {
 			readmeRegExReplacePattern: "(={3,}(?:\n|\r))",
 			disableGit: false,
 			git: {
-				force: false,
 				sourceBranch: "master",
-				newBranchPrefix: "Release-"
+				newBranchPrefix: "Release-",
+				autoCommitUpdatedVersionFiles: true,
+				autoCommitMessage: "Updated Version Numbers"
 			}
 		};
 		var _options = this.options(_defaults);
@@ -135,7 +146,16 @@ module.exports = function(grunt) {
 			readmeText = readmeText.replace(_patt, "$1" + _options.readmeFileText.replace("[version]",_pkg.version).replace("[iterum]",_options.iterum).replace("[now]",_now.toDateString()));
 			grunt.file.write(_options.files.readme, readmeText);
 			grunt.log.oklns('Updated:  ' + _options.files.readme);
-		}  
+		} 
+
+		// Git Auto Add and Commit Updated Files
+		if (!_options.disableGit &&  _options.git.autoCommitUpdatedVersionFiles) {
+			if (_options.files.readme && _options.updateReadme) { git_add(_options.files.readme); }
+			if (_options.files.version && _options.updateVersion) { git_add(_options.files.version); }
+			if (_options.files.package && _options.updatePackage) { git_add(_options.files.package); }
+			git_commit(_options.git.autoCommitMessage);
+			grunt.log.oklns('Git Commit Files: ' + _options.git.autoCommitMessage);
+		}
 /*
 		var _acceptedIterumValues = ["major","minor","patch"];
 		var _readMeFileName = "ReadMe.md";
