@@ -1,6 +1,6 @@
 /*
  * grunt-cmv-create-release-branch
- * https://github.com/Christopher/grunt-cmv-create-release-branch
+ * https://github.com/liaodrake/grunt-cmv-create-release-branch
  *
  * Copyright (c) 2014 Christopher Vachon
  * Licensed under the MIT license.
@@ -8,17 +8,44 @@
 
 'use strict';
 
-//var shell  = require('shelljs');
+var shell  = require('shelljs');
 
 module.exports = function(grunt) {
-
-	// Please see the Grunt documentation for more information regarding task
-	// creation: http://gruntjs.com/creating-tasks
 	function convertInt(_value) {
 		if (isNaN(_value)) {
 			_value =  _value.replace(/[^0-9]{1,}/g,"");
 		}
 		return _value;
+	}
+
+	function git_isDirty() {
+		var _command = "git status --porcelain";
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: true });
+		return ((sresult.output.length === 0)?false:true);
+	}
+
+	function git_checkout(_branch, flags) {
+		var _command = "git checkout " + flags + " " +_branch;
+		if (flags) { _command += flags + " "; }
+		_command += _branch;
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: true });
+		return;
+	}
+
+	function git_add(_file) {
+		var _command ="git add " + _file;
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: true });
+		return;
+	}
+
+	function git_commit(_message) {
+		var _command = "git commit -m \"" + _message + "\"";
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: true });
+		return;
 	}
 	grunt.registerMultiTask('create_release_branch', 'Grunt Task to Create Release Branches and automatically update semantic versioning', function() {
 		var _defaults = {
@@ -34,7 +61,14 @@ module.exports = function(grunt) {
 				version: "VERSION"
 			},
 			readmeFileText: "\n## [version]\n- New [iterum] branch created on [now]\n\n",
-			readmeRegExReplacePattern: "(={3,}(?:\n|\r))"
+			readmeRegExReplacePattern: "(={3,}(?:\n|\r))",
+			disableGit: false,
+			git: {
+				sourceBranch: "master",
+				newBranchPrefix: "Release-",
+				autoCommitUpdatedVersionFiles: true,
+				autoCommitMessage: "Updated Version Numbers"
+			}
 		};
 		var _options = this.options(_defaults);
 
@@ -47,14 +81,22 @@ module.exports = function(grunt) {
 			_options.iterum = this.target;
 		}
 
-		grunt.log.subhead("Create " + _options.iterum + " branch");
+		grunt.log.subhead("Create a "+ _options.iterum + " branch");
+
+		// Git Checkout the Source Branch
+		if (!_options.disableGit) {
+			if (git_isDirty()) { grunt.fail.fatal("Git found some uncommited files. Commit or Stash git files to proceed"); }
+			git_checkout(_options.git.sourceBranch);
+			grunt.log.oklns('Git Checkout: ' + _options.git.sourceBranch);
+		}
 
 		if (!_options.files.package || !grunt.file.exists(_options.files.package)) {
 			grunt.fail.fatal("File Not Found [package]: " + _options.files.package + " (Default: " + _defaults.files.package + ")" );
 		}
 		var _pkg = grunt.file.readJSON(_options.files.package);
-		grunt.log.writeln("Current Version: " + _pkg.version);
+		grunt.log.oklns("Current Version: " + _pkg.version);
 
+		// Increment the Version Number
 		var _newVersionSplit = _pkg.version.split('.');
 		if (_options.iterum === _validIterums[0]) { // major
 			_newVersionSplit[0] = parseInt(convertInt(_newVersionSplit[0]))+1;
@@ -74,7 +116,15 @@ module.exports = function(grunt) {
 
 		// Set new Version
 		_pkg.version = _newVersionSplit.join(".");
-		grunt.log.writeln("Set to:" + _pkg.version);
+		grunt.log.oklns("Set to: " + _pkg.version);
+
+		// Git Checkout the Create New Release Branch
+		if (!_options.disableGit) {
+			if (git_isDirty()) { grunt.fail.fatal("Git found some uncommited files. Commit or Stash git files to proceed"); }
+			var _newBranchName = _options.git.newBranchPrefix + _pkg.version;
+			git_checkout(_newBranchName,"-b");
+			grunt.log.oklns('Git Checkout New Branch: ' +_newBranchName);
+		}
 
 		// write package file
 		if (_options.updatePackage) {
@@ -105,88 +155,26 @@ module.exports = function(grunt) {
 			var _patt = new RegExp(_options.readmeRegExReplacePattern,"gi");
 			readmeText = readmeText.replace(_patt, "$1" + _options.readmeFileText.replace("[version]",_pkg.version).replace("[iterum]",_options.iterum).replace("[now]",_now.toDateString()));
 			grunt.file.write(_options.files.readme, readmeText);
-			grunt.log.oklns('Updated:  ' + _options.files.readme);
-		}
+			grunt.log.oklns('Updated: ' + _options.files.readme);
+		} 
 
-/*
-		var _acceptedIterumValues = ["major","minor","patch"];
-		var _readMeFileName = "ReadMe.md";
-		var _versionFileName = "VERSION";
-		var _branchNamePrefix = "Release-";
-
-		var _runGitCommands = true;
-		var _runFileCommands = true;
-
-		var _pkg = grunt.file.readJSON('package.json');
-		grunt.log.oklns('Current Release Branch For: v' + _pkg.version);
-
-		if (_runGitCommands) {
-			// Goto Master Branch
-			grunt.task.run('gitcheckout:master');
-		}
-
-		var _newBranchName = _branchNamePrefix + 'v' + _pkg.version;
-		grunt.log.oklns('Creating Release Branch For: v' + _pkg.version);
-
-		if (_runGitCommands) {
-			// Create and Checkout New Version Branch
-			grunt.config.set('gitcheckout.newVersionBranch.options.branch', _newBranchName);
-			grunt.task.run('gitcheckout:newVersionBranch');
-			grunt.log.oklns('git checkout -b ' + _newBranchName);
-		}
-
-		if (_runFileCommands) {
-			// Update Package.Json File to New Version Number
-			grunt.log.oklns('package.json');
-			grunt.file.write("package.json", JSON.stringify(pkg,null,"\t"));
-
-
-
-			// Update ReadMe File with New Version Number
-			if (grunt.file.exists(_readMeFileName)) {
-else {
-				grunt.log.error('Oops! ' + _readMeFileName + ' Could Not Found!');
+		// Git Auto Add and Commit Updated Files
+		if (!_options.disableGit &&  _options.git.autoCommitUpdatedVersionFiles) {
+			var _logGitAdd = "Git Add: ";
+			if (_options.files.package && _options.updatePackage) {
+				git_add(_options.files.package);
+				grunt.log.oklns(_logGitAdd + _options.files.package);
 			}
-
-			if (_runGitCommands) {
-				// save file changes in the Repo
-				grunt.task.run('gitcommit:newReleaseBranch');
+			if (_options.files.version && _options.updateVersion) {
+				git_add(_options.files.version);
+				grunt.log.oklns(_logGitAdd + _options.files.version);
 			}
+			if (_options.files.readme && _options.updateReadme) {
+				git_add(_options.files.readme);
+				grunt.log.oklns(_logGitAdd + _options.files.readme);
+			}
+			git_commit(_options.git.autoCommitMessage);
+			grunt.log.oklns('Git Commit Files: ' + _options.git.autoCommitMessage);
 		}
-*/
-/*
-		// Merge task-specific and/or target-specific options with these defaults.
-		var options = this.options({
-			punctuation: '.',
-			separator: ', '
-		});
-
-		// Iterate over all specified file groups.
-		this.files.forEach(function(f) {
-			// Concat specified files.
-			var src = f.src.filter(function(filepath) {
-				// Warn on and remove invalid source files (if nonull was set).
-				if (!grunt.file.exists(filepath)) {
-					grunt.log.warn('Source file "' + filepath + '" not found.');
-					return false;
-				} else {
-					return true;
-				}
-			}).map(function(filepath) {
-				// Read file source.
-				return grunt.file.read(filepath);
-			}).join(grunt.util.normalizelf(options.separator));
-
-			// Handle options.
-			src += options.punctuation;
-
-			// Write the destination file.
-			grunt.file.write(f.dest, src);
-
-			// Print a success message.
-			grunt.log.writeln('File "' + f.dest + '" created.');
-		});
-*/
 	});
-
 };
