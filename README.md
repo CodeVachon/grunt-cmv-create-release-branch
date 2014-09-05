@@ -1,10 +1,6 @@
 grunt-cmv-create-release-branch
 ===============================
 
-## v0.0.1
-- New patch branch created on Fri Sep 05 2014
-
-
 > Grunt Task to Create Release Branches and automatically update semantic versioning
 
 ## Getting Started
@@ -65,13 +61,13 @@ The `static` value does not increment any semantic value, but allows for the add
 Type: `String`    
 Default: `"v"`
 
-A pre fixture to add to the version. eg: `"v1.0.0"`
+A pre fixture to add to the version. eg: `"v[version]"`
 
 #### options.versionPostfix
 Type: `String`   
 Default: `""`
 
-A post fixture to add to the version. eg: `"1.0.0-alpha"`
+A post fixture to add to the version. eg: `"[version]-alpha"`
 
 #### options.updatePackage
 Type: `Boolean`   
@@ -96,18 +92,24 @@ Type: `String`
 Default: `"package.json"`
 
 Path to the package file
+> ##### Note: **required**
+> task will fail if package file is not found
 
 #### options.files.readme
 Type: `String`   
 Default: `"README.md"`
 
 Path to the Readme file
+> ##### Note
+> Will be created if not found
 
 #### options.files.version
 Type: `String`   
 Default: `"VERSION"`
 
 Path to the Version file
+> ##### Note
+> Will be created if not found
 
 #### options.readmeFileText
 Type: `String`   
@@ -116,7 +118,7 @@ Default: `"\n## [version]\n- New [iterum] branch created on [now]\n\n"`
 Text to be added into the Readme File.
 
 | replacement variable | content |
-|----------------------|---------|
+|:---------------------|:--------|
 |[version]|the new version value|
 |[iterum]|the version iterum being updates (major, minor, patch)|
 |[now]|the string value return from `toDateString()` of a javascript date object |
@@ -127,6 +129,38 @@ Type: `String`
 Default: `"(={3,}(?:\n|\r))"`
 
 A Regular Expression Used to find the insert point for the content of `options.readmeFileText`
+> ##### Note
+> Default RegEx assumes you want version infromation added under the main header of the file. the main header by default is identified by 3 or more `=` characters.
+
+#### options.disableGit
+Type: `Boolean`   
+Default: `false`
+
+Disables git functionality 
+
+#### options.git.sourceBranch
+Type: `String`   
+Default: `master`
+
+The name of the branch that the plugin should use to create a release branch from
+
+#### options.git.newBranchPrefix
+Type: `String`   
+Default: `Release-`
+
+A Prefix to be added to the new branch.  eg: `Release-[version]`
+
+#### options.git.autoCommitUpdatedVersionFiles
+Type: `Boolean`   
+Default: `true`
+
+Auto Commit the Changed Files as part of the create release branch process
+
+#### options.git.autoCommitMessage
+Type: `String`   
+Default: `Updated Version Numbers`
+
+The commit message to be used if `options.git.autoCommitUpdatedVersionFiles` is true
 
 ### Usage Examples
 
@@ -149,12 +183,33 @@ grunt.initConfig({
       versionPrefix: "v",
       files {
         readme: "ReadMe.md"
+      },
+      git: {
+        newBranchPrefix: "Release-"
+      }
+    },
+    major: {
+      options: {
+        //iterum: "" // Set By the Task Name,
+      }
+    },
+    minor: {
+      options: {
+        //iterum: "" // Set By the Task Name,
       }
     },
     patch: {
       options: {
-        iterum: "" // Set By the Task Name,
-        versionPrefix: "PATCH-"
+        //iterum: "" // Set By the Task Name,
+        git: {
+          newBranchPrefix: "Patch-"
+        }
+      }
+    },
+    beta: {
+      options: {
+        iterum: "static" // Set By the Task Name,
+        versionPostfix: "-beta"
       }
     }
   }
