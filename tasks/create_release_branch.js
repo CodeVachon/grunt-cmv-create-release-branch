@@ -46,7 +46,8 @@ module.exports = function(grunt) {
 			disableGit: false,
 			git: {
 				force: false,
-				sourceBranch: "master"
+				sourceBranch: "master",
+				newBranchPrefix: "Release-"
 			}
 		};
 		var _options = this.options(_defaults);
@@ -62,9 +63,11 @@ module.exports = function(grunt) {
 
 		grunt.log.subhead("Create a "+ _options.iterum + " branch");
 
+		// Git Checkout the Source Branch
 		if (!_options.disableGit) {
 			if (git_isDirty()) { grunt.fail.fatal("Git found some uncommited files. Commit or Stash git files to proceed"); }
 			git_checkout(_options.git.sourceBranch);
+			grunt.log.oklns('Git Checkout: ' + _options.git.sourceBranch);
 		}
 
 		if (!_options.files.package || !grunt.file.exists(_options.files.package)) {
@@ -93,6 +96,14 @@ module.exports = function(grunt) {
 		// Set new Version
 		_pkg.version = _newVersionSplit.join(".");
 		grunt.log.writeln("Set to:" + _pkg.version);
+
+		// Git Checkout the Create New Release Branch
+		if (!_options.disableGit) {
+			if (git_isDirty()) { grunt.fail.fatal("Git found some uncommited files. Commit or Stash git files to proceed"); }
+			var _newBranchName = _options.git.newBranchPrefix + _pkg.version;
+			git_checkout(_newBranchName,"-b");
+			grunt.log.oklns('Git Checkout New Branch: ' +_newBranchName);
+		}
 
 		// write package file
 		if (_options.updatePackage) {
