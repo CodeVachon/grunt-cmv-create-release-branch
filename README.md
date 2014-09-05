@@ -1,6 +1,10 @@
 grunt-cmv-create-release-branch
 ===============================
 
+## v0.0.1
+- New patch branch created on Fri Sep 05 2014
+
+
 > Grunt Task to Create Release Branches and automatically update semantic versioning
 
 ## Getting Started
