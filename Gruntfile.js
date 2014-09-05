@@ -48,9 +48,9 @@ module.exports = function(grunt) {
       },
       testgit: {
         options: {
-          updatePackage: false,
-          updateVersion: false,
-          updateReadme: false
+          updatePackage: true,
+          updateVersion: true,
+          updateReadme: true
         }
       }
     },
