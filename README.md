@@ -222,5 +222,6 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 ## Release History
 ### v0.1.1
 - Fixed Issue with Git Checkout
+
 ### v0.1.1
 - Init
