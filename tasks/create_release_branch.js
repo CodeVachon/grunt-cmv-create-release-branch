@@ -9,6 +9,7 @@
 'use strict';
 
 var shell  = require('shelljs');
+var _silenceGit = true;
 
 module.exports = function(grunt) {
 	function convertInt(_value) {
@@ -21,30 +22,30 @@ module.exports = function(grunt) {
 	function git_isDirty() {
 		var _command = "git status --porcelain";
 		grunt.log.debug(_command);
-		var sresult  = shell.exec(_command, { silent: true });
+		var sresult  = shell.exec(_command, { silent: _silenceGit });
 		return ((sresult.output.length === 0)?false:true);
 	}
 
 	function git_checkout(_branch, flags) {
-		var _command = "git checkout " + flags + " " +_branch;
+		var _command = "git checkout ";
 		if (flags) { _command += flags + " "; }
 		_command += _branch;
 		grunt.log.debug(_command);
-		var sresult  = shell.exec(_command, { silent: true });
+		var sresult  = shell.exec(_command, { silent: _silenceGit });
 		return;
 	}
 
 	function git_add(_file) {
 		var _command ="git add " + _file;
 		grunt.log.debug(_command);
-		var sresult  = shell.exec(_command, { silent: true });
+		var sresult  = shell.exec(_command, { silent: _silenceGit });
 		return;
 	}
 
 	function git_commit(_message) {
 		var _command = "git commit -m \"" + _message + "\"";
 		grunt.log.debug(_command);
-		var sresult  = shell.exec(_command, { silent: true });
+		var sresult  = shell.exec(_command, { silent: _silenceGit });
 		return;
 	}
 	grunt.registerMultiTask('create_release_branch', 'Grunt Task to Create Release Branches and automatically update semantic versioning', function() {
@@ -156,7 +157,7 @@ module.exports = function(grunt) {
 			readmeText = readmeText.replace(_patt, "$1" + _options.readmeFileText.replace("[version]",_pkg.version).replace("[iterum]",_options.iterum).replace("[now]",_now.toDateString()));
 			grunt.file.write(_options.files.readme, readmeText);
 			grunt.log.oklns('Updated: ' + _options.files.readme);
-		} 
+		}
 
 		// Git Auto Add and Commit Updated Files
 		if (!_options.disableGit &&  _options.git.autoCommitUpdatedVersionFiles) {
