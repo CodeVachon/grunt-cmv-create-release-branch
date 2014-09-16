@@ -39,7 +39,7 @@ grunt.initConfig({
 ### Options
 
 #### options.iterum
-Type: `String`   
+Type: `String`
 Default: `"patch"`
 
 The semantic value to iterate.  must match one the following values
@@ -58,37 +58,37 @@ The `static` value does not increment any semantic value, but allows for the add
 
 
 #### options.versionPrefix
-Type: `String`    
+Type: `String`
 Default: `"v"`
 
 A pre fixture to add to the version. eg: `"v[version]"`
 
 #### options.versionPostfix
-Type: `String`   
+Type: `String`
 Default: `""`
 
 A post fixture to add to the version. eg: `"[version]-alpha"`
 
 #### options.updatePackage
-Type: `Boolean`   
+Type: `Boolean`
 Default: `true`
 
 Update the Package File identified in `options.files.package`
 
 #### options.updateVersion
-Type: `Boolean`   
+Type: `Boolean`
 Default: `true`
 
 Update the Version File identified in `options.files.version`
 
 #### options.updateReadme
-Type: `Boolean`   
+Type: `Boolean`
 Default: `true`
 
 Update the Read Me File identified in `options.files.readme`
 
 #### options.files.package
-Type: `String`   
+Type: `String`
 Default: `"package.json"`
 
 Path to the package file
@@ -96,7 +96,7 @@ Path to the package file
 > task will fail if package file is not found
 
 #### options.files.readme
-Type: `String`   
+Type: `String`
 Default: `"README.md"`
 
 Path to the Readme file
@@ -104,7 +104,7 @@ Path to the Readme file
 > Will be created if not found
 
 #### options.files.version
-Type: `String`   
+Type: `String`
 Default: `"VERSION"`
 
 Path to the Version file
@@ -112,7 +112,7 @@ Path to the Version file
 > Will be created if not found
 
 #### options.readmeFileText
-Type: `String`   
+Type: `String`
 Default: `"\n## [version]\n- New [iterum] branch created on [now]\n\n"`
 
 Text to be added into the Readme File.
@@ -125,7 +125,7 @@ Text to be added into the Readme File.
 
 
 #### options.readmeRegExReplacePattern
-Type: `String`   
+Type: `String`
 Default: `"(={3,}(?:\n|\r))"`
 
 A Regular Expression Used to find the insert point for the content of `options.readmeFileText`
@@ -133,31 +133,31 @@ A Regular Expression Used to find the insert point for the content of `options.r
 > Default RegEx assumes you want version infromation added under the main header of the file. the main header by default is identified by 3 or more `=` characters.
 
 #### options.disableGit
-Type: `Boolean`   
+Type: `Boolean`
 Default: `false`
 
-Disables git functionality 
+Disables git functionality
 
 #### options.git.sourceBranch
-Type: `String`   
+Type: `String`
 Default: `master`
 
 The name of the branch that the plugin should use to create a release branch from
 
 #### options.git.newBranchPrefix
-Type: `String`   
+Type: `String`
 Default: `Release-`
 
 A Prefix to be added to the new branch.  eg: `Release-[version]`
 
 #### options.git.autoCommitUpdatedVersionFiles
-Type: `Boolean`   
+Type: `Boolean`
 Default: `true`
 
 Auto Commit the Changed Files as part of the create release branch process
 
 #### options.git.autoCommitMessage
-Type: `String`   
+Type: `String`
 Default: `Updated Version Numbers`
 
 The commit message to be used if `options.git.autoCommitUpdatedVersionFiles` is true
@@ -220,4 +220,7 @@ grunt.initConfig({
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
-_(Nothing yet)_
+### v0.1.1
+- Fixed Issue with Git Checkout
+### v0.1.1
+- Init
