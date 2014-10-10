@@ -162,6 +162,18 @@ Default: `Updated Version Numbers`
 
 The commit message to be used if `options.git.autoCommitUpdatedVersionFiles` is true
 
+#### options.git.autoPushToRemote
+Type: `Boolean`
+Default: `true`
+
+Automatically create and push to a branch on the remote server
+
+#### options.git.pushRemoteName
+Type: `String`
+Default: `origin`
+
+Name of the remote server
+
 ### Usage Examples
 
 #### Default Options
@@ -220,7 +232,15 @@ grunt.initConfig({
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
+### v0.2.0
+- Fixed Issue With Sub Options being defaulted properly
+- Fixed Issue if already on sourced branch
+- Added Pull from remote options
+- Added Push to remote options
+- Added error handling if a branch already exists
+
 ### v0.1.1
 - Fixed Issue with Git Checkout
-### v0.1.1
+
+### v0.1.0
 - Init

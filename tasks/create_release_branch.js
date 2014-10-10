@@ -23,7 +23,18 @@ module.exports = function(grunt) {
 		var _command = "git status --porcelain";
 		grunt.log.debug(_command);
 		var sresult  = shell.exec(_command, { silent: _silenceGit });
+		grunt.log.debug(JSON.stringify(sresult, null, "\t"));
 		return ((sresult.output.length === 0)?false:true);
+	}
+
+	function git_getCurrentBranch(_branch) {
+		var _command = "git branch";
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: _silenceGit });
+		grunt.log.debug(JSON.stringify(sresult, null, "\t"));
+		var _currentBranch = sresult.output.replace(/(?:[^\*]+)?\*\s{1,}([a-zA-Z0-9-_\.]+)(?:[^\*]+)?/gm,"$1");
+		grunt.log.debug(_currentBranch);
+		return _currentBranch
 	}
 
 	function git_checkout(_branch, flags) {
@@ -32,22 +43,50 @@ module.exports = function(grunt) {
 		_command += _branch;
 		grunt.log.debug(_command);
 		var sresult  = shell.exec(_command, { silent: _silenceGit });
-		return;
+		grunt.log.debug(JSON.stringify(sresult, null, "\t"));
+		if (sresult.code === 128) { return false; }
+
+		return true;
 	}
 
 	function git_add(_file) {
 		var _command ="git add " + _file;
 		grunt.log.debug(_command);
 		var sresult  = shell.exec(_command, { silent: _silenceGit });
-		return;
+		grunt.log.debug(JSON.stringify(sresult, null, "\t"));
+		return true;
 	}
 
 	function git_commit(_message) {
 		var _command = "git commit -m \"" + _message + "\"";
 		grunt.log.debug(_command);
 		var sresult  = shell.exec(_command, { silent: _silenceGit });
-		return;
+		grunt.log.debug(JSON.stringify(sresult, null, "\t"));
+		return true;
 	}
+
+	function git_pull(branch) {
+		var _command = "git pull";
+		if (branch) {
+			_command += " " + branch;
+		}
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: _silenceGit });
+		grunt.log.debug(JSON.stringify(sresult, null, "\t"));
+		return true;
+	}
+
+	function git_push(toBranch) {
+		var _command = "git push";
+		if (toBranch) {
+			_command += " " + toBranch;
+		}
+		grunt.log.debug(_command);
+		var sresult  = shell.exec(_command, { silent: _silenceGit });
+		grunt.log.debug(JSON.stringify(sresult, null, "\t"));
+		return true;
+	}
+
 	grunt.registerMultiTask('create_release_branch', 'Grunt Task to Create Release Branches and automatically update semantic versioning', function() {
 		var _defaults = {
 			iterum: "patch",
@@ -68,10 +107,21 @@ module.exports = function(grunt) {
 				sourceBranch: "master",
 				newBranchPrefix: "Release-",
 				autoCommitUpdatedVersionFiles: true,
-				autoCommitMessage: "Updated Version Numbers"
+				autoCommitMessage: "Updated Version Numbers",
+				autoPushToRemote: true,
+				pushRemoteName: "origin"
 			}
 		};
 		var _options = this.options(_defaults);
+
+		// Set Defaults of Sub Options
+		var _extendedOptionKeys = ["files","git"];
+		for (var _extendedOptionKeyIndex in _extendedOptionKeys) {
+			var extendedOptionKey = _extendedOptionKeys[_extendedOptionKeyIndex];
+			for (var key in _defaults[extendedOptionKey]) {
+				if (!_options[extendedOptionKey][key]) { _options[extendedOptionKey][key] = _defaults[extendedOptionKey][key]; }
+			}
+		}
 
 		var _validIterums = ["major","minor","patch","static"];
 		if (!this.target || (_validIterums.indexOf(this.target) === -1)) {
@@ -87,8 +137,16 @@ module.exports = function(grunt) {
 		// Git Checkout the Source Branch
 		if (!_options.disableGit) {
 			if (git_isDirty()) { grunt.fail.fatal("Git found some uncommited files. Commit or Stash git files to proceed"); }
-			git_checkout(_options.git.sourceBranch);
-			grunt.log.oklns('Git Checkout: ' + _options.git.sourceBranch);
+
+			var _currentBranch = git_getCurrentBranch();
+			grunt.log.oklns('Git Current Branch: ' + _currentBranch);
+			if (_currentBranch != _options.git.sourceBranch) {
+				grunt.log.oklns('Git Checkout: ' + _options.git.sourceBranch);
+				git_checkout(_options.git.sourceBranch);
+			}
+
+			grunt.log.oklns('Git Pull');
+			git_pull();
 		}
 
 		if (!_options.files.package || !grunt.file.exists(_options.files.package)) {
@@ -123,8 +181,10 @@ module.exports = function(grunt) {
 		if (!_options.disableGit) {
 			if (git_isDirty()) { grunt.fail.fatal("Git found some uncommited files. Commit or Stash git files to proceed"); }
 			var _newBranchName = _options.git.newBranchPrefix + _pkg.version;
-			git_checkout(_newBranchName,"-b");
 			grunt.log.oklns('Git Checkout New Branch: ' +_newBranchName);
+			if (!git_checkout(_newBranchName,"-b")) {
+				grunt.fail.fatal("Git Branch [" + _newBranchName + "] Already Exists");
+			}
 		}
 
 		// write package file
@@ -176,6 +236,14 @@ module.exports = function(grunt) {
 			}
 			git_commit(_options.git.autoCommitMessage);
 			grunt.log.oklns('Git Commit Files: ' + _options.git.autoCommitMessage);
+			git_commit(_options.git.autoCommitMessage);
+		}
+
+		// Git Auto Push and Commit Updated Files
+		if (!_options.disableGit &&  _options.git.autoPushToRemote) {
+			var _remoteBranchCommand = "--set-upstream "+ _options.git.pushRemoteName + " " + git_getCurrentBranch();
+			grunt.log.oklns('Git Push to Remote: ' + _remoteBranchCommand);
+			git_push(_remoteBranchCommand);
 		}
 	});
 };

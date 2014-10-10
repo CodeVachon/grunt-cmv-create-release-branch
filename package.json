@@ -1,7 +1,7 @@
 {
 	"name": "grunt-cmv-create-release-branch",
 	"description": "Grunt Task to Create Release Branches and automatically update semantic versioning",
-	"version": "v0.1.1",
+	"version": "v0.2.0",
 	"homepage": "https://github.com/liaodrake/grunt-cmv-create-release-branch",
 	"author": {
 		"name": "Christopher Vachon",
