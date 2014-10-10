@@ -232,6 +232,7 @@ grunt.initConfig({
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
+
 ### v0.2.0
 - Fixed Issue With Sub Options being defaulted properly
 - Fixed Issue if already on sourced branch
@@ -242,5 +243,5 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 ### v0.1.1
 - Fixed Issue with Git Checkout
 
-### v0.1.0
+### v0.1.1
 - Init
